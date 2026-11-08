@@ -9,7 +9,9 @@ Radix will **recommend** distros rather than make the user guess. The flow is **
 5. **Verify** checksum and signature
 6. **Flash** with the Radix Flasher ([FLASHING.md](FLASHING.md)), optionally **try it in a VM** first
 
-In the build order this is step 3 (hardware scan) and step 4 (rules and scoring).
+In the build order this is step 3 (hardware scan) and step 4 (rules and scoring). **Both now
+exist in a first form:** the one-line scan, `prep.py scan` and the scoring rules are described
+in [SCAN.md](SCAN.md); the web page runs the scan as its step 1.
 
 ## Hardware scan (step 3, runs first)
 

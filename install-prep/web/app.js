@@ -115,6 +115,101 @@
     }
   }
 
+
+  // ---------------------------------------------------------------- step 1: scan
+  const LABEL = { recommended: "Recommended", works: "Works", not_a_fit: "Not a fit", unknown: "Can't tell" };
+  let lastScores = {};
+
+  function fmtScan(scan) {
+    const u = (x) => (x === null || x === undefined || x === "" || (Array.isArray(x) && !x.length)) ? "unknown" : x;
+    const fw = [scan.fw_vendor, scan.fw_version, scan.fw_date].filter(Boolean).join(" ") || "unknown";
+    return [
+      ["CPU", u(scan.cpu_model) + " (" + u(scan.arch) + ", " + u(scan.cores) + " threads)"],
+      ["Memory", scan.mem_kb ? (scan.mem_kb / 1048576).toFixed(1) + " GB" : "unknown"],
+      ["Boot", scan.boot ? (scan.boot === "uefi" ? "UEFI" : "legacy BIOS") : "unknown"],
+      ["Secure Boot", u(scan.secure_boot)],
+      ["Firmware", fw],
+      ["Board", u(scan.board)],
+      ["Disk", scan.disk_bytes ? Math.round(scan.disk_bytes / 1e9) + " GB (largest disk)" : "unknown"],
+      ["GPU", (scan.gpu || []).join("; ") || "unknown"],
+      ["Wi-Fi", (scan.wifi || []).join("; ") || "unknown"],
+    ];
+  }
+
+  function fillDl(dl, rows) {
+    dl.replaceChildren();
+    for (const [k, v] of rows) { dl.append(el("dt", k)); dl.append(el("dd", String(v))); }
+  }
+
+  function applyScan(scan) {
+    fillDl($("scanSummary"), fmtScan(scan));
+    const list = $("fitList");
+    list.replaceChildren();
+    lastScores = {};
+    const order = { recommended: 0, works: 1, unknown: 2, not_a_fit: 3 };
+    const rows = catalog.distros.map((d) => [d, window.RadixCore.scoreDistro(d, scan)])
+      .sort((a, b) => order[a[1][0]] - order[b[1][0]]);
+    for (const [d, [verdict, reason]] of rows) {
+      lastScores[d.id] = verdict;
+      const li = el("li");
+      li.append(el("span", LABEL[verdict], { class: "badge " + verdict }));
+      const txt = el("span");
+      const a = el("a", d.name, { href: "#pick" });
+      a.onclick = () => { $("distro").value = d.id; $("distro").onchange(); };
+      txt.append(a, el("br"), el("span", reason, { class: "why" }));
+      li.append(txt);
+      list.append(li);
+    }
+    for (const opt of $("distro").options) {
+      const d = catalog.distros.find((x) => x.id === opt.value);
+      if (d) opt.textContent = d.name + (lastScores[d.id] ? "  ·  " + LABEL[lastScores[d.id]] : "");
+    }
+    $("scanResult").hidden = false;
+  }
+
+  function onPaste() {
+    const text = $("pasteScan").value;
+    $("scanError").textContent = "";
+    if (!text.trim()) { $("scanResult").hidden = true; return; }
+    if (!catalog) { $("scanError").textContent = "Catalog not loaded yet."; return; }
+    try { applyScan(window.RadixCore.parseScan(text)); }
+    catch (e) { $("scanResult").hidden = true; $("scanError").textContent = e.message; }
+  }
+
+  async function copyCmd() {
+    const text = $("oneliner").textContent;
+    try { await navigator.clipboard.writeText(text); $("copied").textContent = "Copied."; }
+    catch (e) {
+      const r = document.createRange(); r.selectNodeContents($("oneliner"));
+      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      $("copied").textContent = "Selected: press Ctrl+C.";
+    }
+  }
+
+  async function estimate() {
+    const est = await window.RadixCore.browserEstimate();
+    let gpu = "unknown";
+    try {
+      const gl = document.createElement("canvas").getContext("webgl");
+      const ext = gl && gl.getExtension("WEBGL_debug_renderer_info");
+      if (ext) gpu = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "unknown";
+    } catch (e) { /* no WebGL */ }
+    fillDl($("estimateOut"), [
+      ["CPU type", est.arch ? est.arch + " (from " + est.source.join(", ") + ")" : "unknown"],
+      ["Threads", est.cores || "unknown"],
+      ["Memory", est.mem_min_gb ? "about " + est.mem_min_gb + " GB" + (est.mem_min_gb >= 8 ? " or more" : " (rounded down)") : "unknown"],
+      ["GPU", gpu + (/nvidia/i.test(gpu) ? " (NVIDIA)" : "")],
+      ["Secure Boot / firmware / boot mode", "unknown (browsers can't see these)"],
+    ]);
+    if (catalog && !$("pasteScan").value.trim()) {
+      applyScan(window.RadixCore.estimateToScan(est));
+      $("scanError").textContent = "Showing fit from the browser estimate (this device only). Paste a real scan for a full answer.";
+    }
+  }
+
+  $("copyCmd").onclick = copyCmd;
+  $("pasteScan").addEventListener("input", onPaste);
+  $("estimate").onclick = estimate;
   $("file").onchange = updateButton;
   $("expected").oninput = updateButton;
   $("go").onclick = run;

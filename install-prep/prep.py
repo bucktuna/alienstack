@@ -5,6 +5,7 @@ Python 3 standard library only, so it runs on a fresh live system.
 Nothing here talks to a server other than the distro URLs in the catalog.
 """
 import argparse
+import base64
 import getpass
 import hashlib
 import hmac
@@ -80,6 +81,259 @@ def cmd_info(args):
         print(f"  {'Source':28} {src}")
     print("  '-' = not confirmed on an official page, left blank on purpose. Display only:")
     print("  Radix does not change a distro's desktop or package manager.")
+    return 0
+
+
+# ---------------------------------------------------------------- scan + scoring
+SCAN_PREFIX = "RADIX-SCAN-1:"
+SCAN_KEYS = ("arch", "cpu_model", "cores", "mem_kb", "boot", "secure_boot", "fw_vendor",
+             "fw_version", "fw_date", "board", "disk_bytes")
+SCAN_LISTS = ("gpu", "wifi")
+INT_KEYS = ("cores", "mem_kb", "disk_bytes")
+MAX_PASTE = 20000
+ONE_LINER = os.path.join(HERE, "scan", "radix-scan.sh")
+
+
+def norm_arch(a):
+    a = str(a or "").strip().lower()
+    if a in ("x86_64", "amd64", "x64", "x86-64"):
+        return "x86_64"
+    if a in ("aarch64", "arm64", "armv8l"):
+        return "arm64"
+    if a.startswith("armv7") or a == "armhf":
+        return "armhf"
+    if a in ("i386", "i486", "i586", "i686", "x86"):
+        return "x86"
+    return a or None
+
+
+def _read(path):
+    try:
+        with open(path, "rb") as f:
+            return f.read().replace(b"\0", b"").decode("utf-8", "replace").strip()
+    except OSError:
+        return ""
+
+
+def _run(cmd):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def collect_scan():
+    """Read-only, no root needed. Same fields as scan/radix-scan.sh. No serials, hostnames, MACs."""
+    out = {"arch": platform.machine()}
+    cpu = ""
+    for line in _run(["lscpu"]).splitlines():
+        if line.startswith("Model name:"):
+            cpu = line.split(":", 1)[1].strip()
+            break
+    if not cpu:
+        for line in _read("/proc/cpuinfo").splitlines():
+            if line.lower().startswith("model name"):
+                cpu = line.split(":", 1)[1].strip()
+                break
+    out["cpu_model"] = cpu
+    out["cores"] = os.cpu_count()
+    m = re.search(r"^MemTotal:\s+(\d+)", _read("/proc/meminfo"), re.M)
+    out["mem_kb"] = int(m.group(1)) if m else None
+    sb = "unknown"
+    if os.path.isdir("/sys/firmware/efi"):
+        out["boot"] = "uefi"
+        mok = _run(["mokutil", "--sb-state"]) if shutil.which("mokutil") else ""
+        if "SecureBoot enabled" in mok:
+            sb = "enabled"
+        elif "SecureBoot disabled" in mok:
+            sb = "disabled"
+        else:
+            vars_dir = "/sys/firmware/efi/efivars"
+            names = [n for n in (os.listdir(vars_dir) if os.path.isdir(vars_dir) else [])
+                     if n.startswith("SecureBoot-")]
+            if names:
+                try:
+                    with open(os.path.join(vars_dir, names[0]), "rb") as f:
+                        b = f.read()
+                    sb = {1: "enabled", 0: "disabled"}.get(b[4] if len(b) > 4 else None, "unknown")
+                except OSError:
+                    pass
+    else:
+        out["boot"] = "bios"
+        sb = "not-applicable"
+    out["secure_boot"] = sb
+    for k in ("vendor", "version", "date"):
+        out["fw_" + k] = _read(f"/sys/class/dmi/id/bios_{k}")
+    out["board"] = _read("/proc/device-tree/model")
+    biggest = 0
+    for line in _run(["lsblk", "-dbno", "SIZE,TYPE"]).splitlines():
+        parts = line.split()
+        if len(parts) == 2 and parts[1] == "disk" and parts[0].isdigit():
+            biggest = max(biggest, int(parts[0]))
+    out["disk_bytes"] = biggest or None
+    gpu, wifi = [], []
+    for line in _run(["lspci"]).splitlines():
+        rest = line.split(" ", 1)[1] if " " in line else ""
+        for cls in ("VGA compatible controller: ", "3D controller: ", "Display controller: "):
+            if rest.startswith(cls):
+                gpu.append(rest[len(cls):].strip())
+        if rest.startswith("Network controller: "):
+            wifi.append(rest[len("Network controller: "):].strip())
+    out["gpu"], out["wifi"] = gpu, wifi
+    return normalize_scan(out)
+
+
+def normalize_scan(raw):
+    scan = {"radix_scan": 1}
+    for k in SCAN_KEYS:
+        v = raw.get(k)
+        if isinstance(v, str):
+            v = v.strip()[:200] or None
+        if k in INT_KEYS and v is not None:
+            sv = str(v).strip() if not isinstance(v, bool) else ""
+            v = int(sv) if sv.isascii() and sv.isdigit() else None
+            if v is not None and v <= 0:
+                v = None
+        scan[k] = v
+    scan["arch"] = norm_arch(scan["arch"])
+    if scan["boot"] not in ("uefi", "bios"):
+        scan["boot"] = None
+    if scan["secure_boot"] not in ("enabled", "disabled", "not-applicable"):
+        scan["secure_boot"] = None
+    for k in SCAN_LISTS:
+        v = raw.get(k) or []
+        if isinstance(v, str):
+            v = [v]
+        scan[k] = [str(x).strip()[:200] for x in v if str(x).strip()][:8]
+    return scan
+
+
+def scan_to_paste(scan):
+    lines = []
+    for k in SCAN_KEYS:
+        v = scan.get(k)
+        lines.append(f"{k}={'' if v is None else v}")
+    for k in SCAN_LISTS:
+        lines += [f"{k}={v}" for v in scan.get(k) or []]
+    text = "\n".join(l.replace("\r", " ") for l in lines) + "\n"
+    return SCAN_PREFIX + base64.b64encode(text.encode("utf-8")).decode("ascii")
+
+
+def parse_scan(text):
+    """Accept a RADIX-SCAN-1 block (wrapped or not) or prep.py scan JSON."""
+    text = (text or "").strip()
+    if len(text) > MAX_PASTE:
+        raise PrepError("pasted scan is too large")
+    i = text.find(SCAN_PREFIX)
+    if i >= 0:
+        b64 = re.sub(r"\s+", "", text[i + len(SCAN_PREFIX):])
+        b64 = re.match(r"[A-Za-z0-9+/=]*", b64).group(0)
+        try:
+            body = base64.b64decode(b64 + "=" * (-len(b64) % 4)).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            raise PrepError("scan block is damaged; copy the whole RADIX-SCAN-1 line again")
+        raw = {"gpu": [], "wifi": []}
+        for line in body.splitlines():
+            if "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            if k in SCAN_LISTS:
+                raw[k].append(v)
+            elif k in SCAN_KEYS:
+                raw[k] = v
+        return normalize_scan(raw)
+    if text.startswith("{"):
+        try:
+            raw = json.loads(text)
+        except ValueError:
+            raise PrepError("scan JSON is not valid")
+        if raw.get("radix_scan") != 1:
+            raise PrepError("not a Radix scan (missing radix_scan: 1)")
+        return normalize_scan(raw)
+    raise PrepError("no RADIX-SCAN-1 block or scan JSON found")
+
+
+def _gb(mb):
+    return f"{mb / 1024:g} GB"
+
+
+def score_distro(d, scan):
+    """Return (verdict, reason). verdict: recommended | works | not_a_fit | unknown.
+    Uses only catalog facts confirmed on official pages; unknown stays unknown."""
+    req = d.get("requirements") or {}
+    arch = scan.get("arch")
+    if not arch:
+        return "unknown", "Can't tell: the scan has no CPU architecture."
+    if arch not in req.get("arch", []):
+        return "not_a_fit", f"Built for {'/'.join(req.get('arch', []))}; this machine is {arch}."
+    board = req.get("board")
+    if board:
+        have = scan.get("board") or ""
+        if board.lower() not in have.lower():
+            if have:
+                return "not_a_fit", f"Made for {board} boards; this is {have}."
+            return "works", f"Only for {board} boards; the scan couldn't confirm this is one."
+    mem_mb = scan["mem_kb"] / 1024 if scan.get("mem_kb") else None
+    rmin, rrec = req.get("ram_min_mb"), req.get("ram_rec_mb")
+    if mem_mb and rmin and mem_mb < 0.9 * rmin:
+        return "not_a_fit", f"Needs {_gb(rmin)} RAM (official minimum); this machine has {mem_mb / 1024:.1f} GB."
+    sb_on = scan.get("secure_boot") == "enabled"
+    sb = req.get("secure_boot")
+    if sb_on and sb is False:
+        return "works", "Secure Boot is on and this image doesn't support it: turn Secure Boot off first."
+    ram_ok = bool(mem_mb and (rrec or rmin) and mem_mb >= 0.9 * (rrec or rmin))
+    if sb_on and sb is None:
+        return "works", "Matches your CPU; Secure Boot is on and Radix hasn't confirmed this distro's support, so you may need to turn it off."
+    if ram_ok:
+        extra = " and boots with Secure Boot on (signed shim)" if sb_on and sb else ""
+        return "recommended", f"Matches your {arch} CPU, meets the official {_gb(rrec or rmin)} RAM {'recommendation' if rrec else 'minimum'}{extra}."
+    if sb_on and sb:
+        return "recommended", f"Matches your {arch} CPU and boots with Secure Boot on (signed shim)."
+    if rmin and not mem_mb:
+        return "works", f"Matches your CPU; RAM unknown (official minimum {_gb(rmin)})."
+    if rrec and mem_mb and mem_mb < 0.9 * rrec:
+        return "works", f"Matches your CPU; below the recommended {_gb(rrec)} RAM, so expect it to be slow."
+    return "works", f"Matches your {arch} CPU; no official RAM or Secure Boot figure in the catalog yet."
+
+
+def scan_summary(scan):
+    def v(x):
+        return "unknown" if x in (None, "", []) else x
+    mem = f"{scan['mem_kb'] / 1048576:.1f} GB" if scan.get("mem_kb") else "unknown"
+    disk = f"{scan['disk_bytes'] / 1e9:.0f} GB (largest disk)" if scan.get("disk_bytes") else "unknown"
+    fw = " ".join(x for x in (scan.get("fw_vendor"), scan.get("fw_version"), scan.get("fw_date")) if x) or "unknown"
+    rows = [("CPU", f"{v(scan.get('cpu_model'))} ({v(scan.get('arch'))}, {v(scan.get('cores'))} threads)"),
+            ("Memory", mem), ("Boot", v(scan.get("boot"))), ("Secure Boot", v(scan.get("secure_boot"))),
+            ("Firmware", fw), ("Board", v(scan.get("board"))), ("Disk", disk),
+            ("GPU", "; ".join(scan.get("gpu") or []) or "unknown"),
+            ("Wi-Fi", "; ".join(scan.get("wifi") or []) or "unknown")]
+    return "\n".join(f"  {k:12} {val}" for k, val in rows)
+
+
+def cmd_scan(args):
+    if platform.system() != "Linux" and not args.from_paste:
+        print("prep.py scan reads Linux /proc and /sys. On Windows or macOS see docs/SCAN.md "
+              "(or boot a Linux live USB and run the one-line scan).")
+        return 0
+    if args.from_paste:
+        with open(args.from_paste, encoding="utf-8") as f:
+            scan = parse_scan(f.read())
+    else:
+        scan = collect_scan()
+    if args.paste:
+        print(scan_to_paste(scan))
+        return 0
+    if args.json:
+        print(json.dumps(scan, indent=2))
+        return 0
+    print("Radix scan (read-only, stays on this machine):")
+    print(scan_summary(scan))
+    print("\nHow each catalog distro fits:")
+    labels = {"recommended": "Recommended", "works": "Works", "not_a_fit": "Not a fit", "unknown": "Can't tell"}
+    for d in load_catalog(args.catalog)["distros"]:
+        verdict, reason = score_distro(d, scan)
+        print(f"  {labels[verdict]:12} {d['name']}: {reason}")
+    print("\nPaste this on the Radix page:  prep.py scan --paste")
     return 0
 
 
@@ -816,6 +1070,11 @@ def build_parser():
     s.add_argument("--boot-dir", required=True, help="e.g. /run/media/$USER/bootfs")
     add_wifi_args(s, required=True)
     s.set_defaults(fn=cmd_seed_wifi)
+    s = sub.add_parser("scan", help="read-only hardware scan of this machine, with distro fit")
+    s.add_argument("--json", action="store_true", help="print the scan as JSON")
+    s.add_argument("--paste", action="store_true", help="print one RADIX-SCAN-1 line for the web page")
+    s.add_argument("--from-paste", metavar="FILE", help="score a saved RADIX-SCAN-1 block or scan JSON")
+    s.set_defaults(fn=cmd_scan)
     s = sub.add_parser("info", help="more details about a distro (display only)")
     s.add_argument("distro")
     s.set_defaults(fn=cmd_info)

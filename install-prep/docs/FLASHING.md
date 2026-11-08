@@ -83,7 +83,7 @@ Delivery options, to decide later:
 
 A small open-source helper the page can talk to, so the user gets a button instead of a
 terminal. Build order: (1) catalog + verify CLI ✅, (2) drives + guarded write ✅ (CLI),
-(3) hardware scan, (4) compatibility rules and distro scoring, (5) localhost bridge,
+(3) hardware scan ✅ (first form, see SCAN.md), (4) compatibility rules and distro scoring ✅ (first form), (5) localhost bridge,
 (6) web UI, (7) signed releases.
 
 ### Localhost bridge security model

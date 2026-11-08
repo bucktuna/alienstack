@@ -1,0 +1,87 @@
+{
+ "cases": [
+  {
+   "name": "uefi laptop, Secure Boot on, NVIDIA",
+   "paste": "$ sh scan\nRADIX-SCAN-1:YXJjaD14ODZfNjQKY3B1X21vZGVsPUFNRCBSe\n  XplbiA3IDU4MDBIIHdpdGggUmFkZW9uIEdyYXBoaWNzCmNvcmVzPTE2Cm1lbV9rYj0xNjI\r\n4MDAwMApib290PXVlZmkKc2VjdXJlX2Jvb3Q9ZW5hYmxlZApmd192ZW5kb3I9TEVOT1ZPCmZ3X3ZlcnNpb249SEhDTjMxV1cKZndfZGF0ZT0wMy8xNC8yMDIzCmJvYXJkPQpkaXNrX2J5dGVzPTUxMjExMDE5MDU5MgpncHU9TlZJRElBIENvcnBvcmF0aW9uIEdBMTA3TSBbR2VGb3JjZSBSVFggMzA1MCBNb2JpbGVdIChyZXYgYTEpCmdwdT1BZHZhbmNlZCBNaWNybyBEZXZpY2VzLCBJbmMuIFtBTUQvQVRJXSBDZXphbm5lIChyZXYgYzUpCndpZmk9SW50ZWwgQ29ycG9yYXRpb24gV2ktRmkgNiBBWDIwMCAocmV2IDFhKQo=\n$ ",
+   "fields": {
+    "arch": "x86_64",
+    "cores": 16,
+    "boot": "uefi",
+    "secure_boot": "enabled",
+    "gpu_count": 2,
+    "wifi_count": 1
+   },
+   "verdicts": {
+    "ubuntu-lts": "works",
+    "debian-netinst": "recommended",
+    "rpi-os-lite-arm64": "not_a_fit",
+    "endeavouros": "works"
+   }
+  },
+  {
+   "name": "old BIOS PC with 3 GB",
+   "paste": "RADIX-SCAN-1:YXJjaD14ODZfNjQKY3B1X21vZGVsPUludGVsKFIpIENvcmUoVE0pMiBEdW8gQ1BVIEU4NDAwIEAgMy4wMEdIegpjb3Jlcz0yCm1lbV9rYj0zMDAwMDAwCmJvb3Q9YmlvcwpzZWN1cmVfYm9vdD1ub3QtYXBwbGljYWJsZQpmd192ZW5kb3I9RGVsbCBJbmMuCmZ3X3ZlcnNpb249QTExCmZ3X2RhdGU9MDEvMDEvMjAxMApib2FyZD0KZGlza19ieXRlcz0yNTAwNTkzNTAwMTYK",
+   "fields": {
+    "arch": "x86_64",
+    "boot": "bios",
+    "secure_boot": "not-applicable",
+    "mem_kb": 3000000
+   },
+   "verdicts": {
+    "ubuntu-lts": "not_a_fit",
+    "debian-netinst": "recommended",
+    "mint-cinnamon": "works",
+    "rpi-os-lite-arm64": "not_a_fit"
+   }
+  },
+  {
+   "name": "Raspberry Pi 5",
+   "paste": "RADIX-SCAN-1:YXJjaD1hYXJjaDY0CmNwdV9tb2RlbD1Db3J0ZXgtQTc2CmNvcmVzPTQKbWVtX2tiPTgwMDAwMDAKYm9vdD1iaW9zCnNlY3VyZV9ib290PW5vdC1hcHBsaWNhYmxlCmZ3X3ZlbmRvcj0KZndfdmVyc2lvbj0KZndfZGF0ZT0KYm9hcmQ9UmFzcGJlcnJ5IFBpIDUgTW9kZWwgQiBSZXYgMS4wCmRpc2tfYnl0ZXM9NjM4NjQ1Njk4NTYK",
+   "fields": {
+    "arch": "arm64",
+    "board": "Raspberry Pi 5 Model B Rev 1.0",
+    "fw_vendor": null
+   },
+   "verdicts": {
+    "rpi-os-lite-arm64": "works",
+    "ubuntu-lts": "not_a_fit",
+    "debian-netinst": "not_a_fit"
+   }
+  },
+  {
+   "name": "prep.py JSON",
+   "paste": "{\"radix_scan\": 1, \"arch\": \"amd64\", \"cores\": \"4\", \"mem_kb\": 8000000, \"boot\": \"uefi\", \"secure_boot\": \"disabled\", \"gpu\": \"Intel UHD 620\", \"board\": null}",
+   "fields": {
+    "arch": "x86_64",
+    "cores": 4,
+    "secure_boot": "disabled",
+    "gpu_count": 1
+   },
+   "verdicts": {
+    "ubuntu-lts": "recommended",
+    "fedora-workstation": "works"
+   }
+  },
+  {
+   "name": "empty/unknown fields",
+   "paste": "RADIX-SCAN-1:YXJjaD0KY29yZXM9YWJjCm1lbV9rYj0tNQpib290PXdlaXJkCnNlY3VyZV9ib290PW1heWJlCg==",
+   "fields": {
+    "arch": null,
+    "cores": null,
+    "mem_kb": null,
+    "boot": null,
+    "secure_boot": null
+   },
+   "verdicts": {
+    "ubuntu-lts": "unknown",
+    "rpi-os-lite-arm64": "unknown"
+   }
+  }
+ ],
+ "bad": [
+  "hello world",
+  "RADIX-SCAN-1:////",
+  "{\"foo\": 1}",
+  "{not json"
+ ]
+}

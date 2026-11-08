@@ -9,9 +9,11 @@ The first, browser-independent parts are built. Everything is Python 3 standard 
 
 | Path | What it is |
 |---|---|
-| `prep.py` | CLI: `list`, `info`, `download`, `verify`, `fetch-sums`, `drives`, `flash`, `seed-wifi` |
+| `prep.py` | CLI: `scan`, `list`, `info`, `download`, `verify`, `fetch-sums`, `drives`, `flash`, `seed-wifi` |
 | `catalog/distros.json` | distro catalog: image, checksum and signature URLs, pinned key fingerprints (all checked 2026-11-08) |
 | `web/` | static guidance page with an in-browser streaming SHA-256 checker, no tracking, no external scripts |
+| `scan/radix-scan.sh` | the one-line, read-only scan shown on the page (prints `RADIX-SCAN-1:…`) |
+| `docs/SCAN.md` | step 1: scan format, browser estimate, Windows/macOS guidance, scoring rules and sources |
 | `docs/FLASHING.md` | flashing workflow, why WebUSB can't do it, the Radix Flasher and localhost-bridge plan, manual steps per OS |
 | `docs/SD-CARDS.md` | finding the right card/stick, sizing, fake-capacity cards, safe ejection |
 | `docs/WIFI.md` | optional Wi-Fi pre-seeding (Raspberry Pi OS / cloud-init only), what it adds, the first-boot notice |
@@ -21,6 +23,7 @@ The first, browser-independent parts are built. Everything is Python 3 standard 
 ## Quick start
 
 ```bash
+python3 prep.py scan                                            # step 1: read-only scan + distro fit
 python3 prep.py list
 python3 prep.py info mint-cinnamon                              # display-only details
 python3 prep.py download debian-netinst --dir ~/isos          # resumable
@@ -67,12 +70,13 @@ Flashing happens **outside the browser**: browsers block USB mass-storage access
 ```bash
 cd install-prep/tests && python3 -m unittest -v
 node install-prep/tests/sha256_js_test.js      # optional, if node is installed
+node install-prep/tests/scan_js_test.js        # JS scan parser/scoring must match prep.py
 ```
 
 Tests only ever write regular temporary files, never a block device.
 
 ## Not built yet
 
-Hardware scan, recommendation scoring, Wi-Fi pre-seeding for live ISOs, Radix Flasher (localhost bridge or desktop wrapper),
+Richer scoring data (more official RAM / Secure Boot facts, GPU and Wi-Fi driver notes), Wi-Fi pre-seeding for live ISOs, Radix Flasher (localhost bridge or desktop wrapper),
 `prep.py try` (prints a QEMU command), Windows/macOS writing, signed releases, hosting the
 page on opencommons.app.

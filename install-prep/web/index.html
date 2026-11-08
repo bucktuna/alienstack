@@ -19,24 +19,61 @@
   <section class="card" id="flow">
     <h2>How it works</h2>
     <ol class="steps">
-      <li><b>Scan</b> the target machine <span class="soon">(coming: recommendations from your hardware)</span></li>
-      <li><b>Pick</b> a distro</li>
-      <li><b>Download</b> it from the official site</li>
-      <li><b>Verify</b> the checksum, here in your browser or with <code>prep.py</code></li>
-      <li><b>Flash</b> it to a USB stick or SD card, <em>outside the browser</em></li>
+      <li><b>Scan</b> the computer Linux will run on</li>
+      <li><b>Pick</b> a distro (the scan marks what fits) and download it</li>
+      <li><b>Verify</b> the download, here in your browser or with <code>prep.py</code></li>
+      <li><b>Find</b> your USB stick or SD card</li>
+      <li><b>Flash</b> it, <em>outside the browser</em></li>
     </ol>
-    <p class="note">Nothing you pick or hash here leaves this page. No tracking, no external scripts.</p>
+    <p class="note">Nothing you scan, paste, pick or hash here leaves this page. No tracking, no external scripts.</p>
+  </section>
+
+  <section class="card" id="scan">
+    <h2>1 · Scan the target machine</h2>
+    <p>Run this on the computer you want to put Linux on: its current Linux, or a Linux live USB.
+      It only reads system information (no sudo, nothing installed, nothing sent anywhere) and
+      prints one line. It leaves out serial numbers, hostnames and network addresses.</p>
+    <div class="bigstep"><span class="n">1</span><b>Copy &amp; run this</b> in a terminal</div>
+    <pre class="cmd oneliner" id="oneliner">{ echo "arch=$(uname -m)"; c=$(LC_ALL=C lscpu 2&gt;/dev/null | sed -n 's/^Model name:[[:space:]]*//p' | head -n1); [ -n "$c" ] || c=$(sed -n 's/^model name[[:space:]]*:[[:space:]]*//p' /proc/cpuinfo | head -n1); echo "cpu_model=$c"; echo "cores=$(getconf _NPROCESSORS_ONLN 2&gt;/dev/null)"; echo "mem_kb=$(awk '/^MemTotal:/{print $2}' /proc/meminfo)"; s=unknown; if [ -d /sys/firmware/efi ]; then echo boot=uefi; case "$(mokutil --sb-state 2&gt;/dev/null)" in *"SecureBoot enabled"*) s=enabled;; *"SecureBoot disabled"*) s=disabled;; esac; f=$(ls /sys/firmware/efi/efivars/SecureBoot-* 2&gt;/dev/null | head -n1); if [ "$s" = unknown ] &amp;&amp; [ -n "$f" ]; then case "$(od -An -tu1 -j4 -N1 "$f" 2&gt;/dev/null | tr -d ' ')" in 1) s=enabled;; 0) s=disabled;; esac; fi; else echo boot=bios; s=not-applicable; fi; echo "secure_boot=$s"; for k in vendor version date; do echo "fw_$k=$(cat /sys/class/dmi/id/bios_$k 2&gt;/dev/null)"; done; echo "board=$(tr -d '\000' 2&gt;/dev/null &lt; /proc/device-tree/model)"; echo "disk_bytes=$(lsblk -dbno SIZE,TYPE 2&gt;/dev/null | awk '$2=="disk" &amp;&amp; $1&gt;m {m=$1} END {print m+0}')"; lspci 2&gt;/dev/null | sed -n -e 's/^[^ ]* VGA compatible controller: /gpu=/p' -e 's/^[^ ]* 3D controller: /gpu=/p' -e 's/^[^ ]* Display controller: /gpu=/p' -e 's/^[^ ]* Network controller: /wifi=/p'; } | base64 | tr -d '\n' | sed 's/^/RADIX-SCAN-1:/'; echo</pre>
+    <div class="row"><button id="copyCmd" class="btn" type="button">Copy command</button><span id="copied" class="note" aria-live="polite"></span></div>
+    <div class="bigstep"><span class="n">2</span><b>Paste the result</b> (the line starting <code>RADIX-SCAN-1:</code>)</div>
+    <label for="pasteScan" class="visually-hidden">Paste your scan here</label>
+    <textarea id="pasteScan" rows="4" spellcheck="false" autocomplete="off" placeholder="Paste your scan here"></textarea>
+    <p id="scanError" class="note warn" aria-live="polite"></p>
+    <div id="scanResult" hidden>
+      <h3>Your machine</h3>
+      <dl id="scanSummary" class="summary"></dl>
+      <h3>How each distro fits</h3>
+      <ul id="fitList" class="fit"></ul>
+      <p class="note">Rules use only facts confirmed on official pages (architecture, documented RAM
+        minimums, official Secure Boot support). Anything Radix can't confirm stays unknown.</p>
+    </div>
+    <details class="more">
+      <summary>Other ways to scan</summary>
+      <ul>
+        <li>With Radix downloaded: <code>python3 prep.py scan</code> (summary) or <code>python3 prep.py scan --paste</code> (the same one line; <code>--json</code> also works here).</li>
+        <li>Windows: <code>msinfo32</code> shows System Type (x64/ARM64), Installed Physical Memory,
+          BIOS Mode (UEFI/Legacy), Secure Boot State and BIOS Version. Fill in step 2 by running the
+          command above from a Linux live USB instead, or just pick using those values.</li>
+        <li>macOS: Apple menu → About This Mac (chip, memory). Intel Macs can boot many x86_64
+          distros; Apple Silicon Macs need Asahi Linux, which is not in this catalog.</li>
+      </ul>
+      <p><button id="estimate" class="btn ghost" type="button">Quick estimate from this browser</button></p>
+      <p class="note">An <b>estimate, this device only</b>: browsers can't see Secure Boot, firmware or
+        boot mode, and report memory only approximately (capped at 8 GB). Unknown stays unknown.</p>
+      <dl id="estimateOut" class="summary"></dl>
+    </details>
   </section>
 
   <section class="card" id="pick">
-    <h2>1 · Pick a distro</h2>
+    <h2>2 · Pick a distro</h2>
     <label for="distro">Distro</label>
     <select id="distro"><option>Loading catalog…</option></select>
     <div id="details" class="details"></div>
   </section>
 
   <section class="card" id="verify">
-    <h2>2 · Verify your download</h2>
+    <h2>3 · Verify your download</h2>
     <p>Choose the image you downloaded. It is hashed locally in 4 MB slices, so even a 6 GB
       ISO is fine; it just takes a while (roughly a minute per GB on a typical laptop).
       The file is never uploaded.</p>
@@ -56,7 +93,7 @@
   </section>
 
   <section class="card" id="sd">
-    <h2>3 · Find your USB stick or SD card</h2>
+    <h2>4 · Find your USB stick or SD card</h2>
     <ul>
       <li>Built-in SD slot: <code>/dev/mmcblk0</code>. USB stick or USB card reader: <code>/dev/sdX</code>.</li>
       <li>Run <code>lsblk</code> before and after inserting it; the new disk is the one. Or <code>sudo dmesg -w</code> while inserting.</li>
@@ -67,7 +104,7 @@
   </section>
 
   <section class="card" id="flash">
-    <h2>4 · Flash it (outside the browser)</h2>
+    <h2>5 · Flash it (outside the browser)</h2>
     <p>Web pages cannot write to USB drives: browsers block USB mass-storage devices on
       purpose. So the writing happens in a tool on your own computer.</p>
     <h3>Radix CLI (Linux)</h3>
@@ -94,6 +131,7 @@
 </main>
 <footer><span class="motto">foss for life</span></footer>
 <script src="sha256.js"></script>
+<script src="radix-core.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
