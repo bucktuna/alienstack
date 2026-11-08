@@ -1,0 +1,22 @@
+{
+   "blockdevices": [
+      {"name":"nvme0n1","path":"/dev/nvme0n1","size":1000204886016,"model":"Samsung SSD 980 1TB","serial":"S64ANS0T123456","tran":"nvme","rm":false,"hotplug":false,"type":"disk","mountpoints":[null],
+         "children": [
+            {"name":"nvme0n1p1","path":"/dev/nvme0n1p1","size":536870912,"model":null,"serial":null,"tran":"nvme","rm":false,"hotplug":false,"type":"part","mountpoints":["/boot/efi"]},
+            {"name":"nvme0n1p2","path":"/dev/nvme0n1p2","size":999666147328,"model":null,"serial":null,"tran":"nvme","rm":false,"hotplug":false,"type":"part","mountpoints":["/home","/"]}
+         ]
+      },
+      {"name":"sda","path":"/dev/sda","size":2000398934016,"model":"WDC WD20EZRZ","serial":"WD-WCC4M1234567","tran":"sata","rm":false,"hotplug":false,"type":"disk","mountpoints":[null],
+         "children":[{"name":"sda1","path":"/dev/sda1","size":2000397795328,"model":null,"serial":null,"tran":"sata","rm":false,"hotplug":false,"type":"part","mountpoints":["/mnt/data"]}]
+      },
+      {"name":"sdb","path":"/dev/sdb","size":32017047552,"model":"SanDisk 3.2Gen1","serial":"0401f7ab12cd","tran":"usb","rm":true,"hotplug":true,"type":"disk","mountpoints":[null],
+         "children":[{"name":"sdb1","path":"/dev/sdb1","size":32015998976,"model":null,"serial":null,"tran":"usb","rm":true,"hotplug":true,"type":"part","mountpoints":["/run/media/buck/STICK"]}]
+      },
+      {"name":"sdc","path":"/dev/sdc","size":0,"model":"USB3.0 CRW-SD","serial":"201006010301","tran":"usb","rm":true,"hotplug":true,"type":"disk","mountpoints":[null]},
+      {"name":"mmcblk0","path":"/dev/mmcblk0","size":63864569856,"model":null,"serial":"0x1234abcd","tran":null,"rm":false,"hotplug":false,"type":"disk","mountpoints":[null],
+         "children":[{"name":"mmcblk0p1","path":"/dev/mmcblk0p1","size":63863521280,"model":null,"serial":null,"tran":null,"rm":false,"hotplug":false,"type":"part","mountpoints":[null]}]
+      },
+      {"name":"loop0","path":"/dev/loop0","size":4096,"model":null,"serial":null,"tran":null,"rm":false,"hotplug":false,"type":"loop","mountpoints":["/snap/core/1"]},
+      {"name":"sr0","path":"/dev/sr0","size":1073741312,"model":"DVD RW","serial":"X1","tran":"sata","rm":true,"hotplug":true,"type":"rom","mountpoints":[null]}
+   ]
+}

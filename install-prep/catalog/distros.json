@@ -1,0 +1,248 @@
+{
+  "schema": 1,
+  "checked": "2026-11-08",
+  "note": "Every URL and fingerprint below was fetched from the distro's official site on the 'checked' date and the checksum file signatures were verified with gpg against the pinned fingerprint. Values that could not be confirmed from an official page are null with a note. Point releases move: re-check before trusting an old catalog.",
+  "distros": [
+    {
+      "id": "ubuntu-lts",
+      "name": "Ubuntu 26.04.1 LTS Desktop",
+      "version": "26.04.1",
+      "arch": "amd64",
+      "media": "usb",
+      "official_page": "https://ubuntu.com/download/desktop",
+      "image_name": "ubuntu-26.04.1-desktop-amd64.iso",
+      "url_pattern": "https://releases.ubuntu.com/{version}/ubuntu-{version}-desktop-amd64.iso",
+      "image_url": "https://releases.ubuntu.com/26.04.1/ubuntu-26.04.1-desktop-amd64.iso",
+      "checksum": {
+        "algorithm": "sha256",
+        "url": "https://releases.ubuntu.com/26.04.1/SHA256SUMS"
+      },
+      "signature": {
+        "url": "https://releases.ubuntu.com/26.04.1/SHA256SUMS.gpg",
+        "covers": "checksum_file",
+        "key_fingerprint": "843938DF228D22F7B3742BC0D94AA3F0EFE21092",
+        "key_keyserver": "hkps://keyserver.ubuntu.com",
+        "key_url": null,
+        "fingerprint_source": "https://ubuntu.com/tutorials/how-to-verify-ubuntu",
+        "fingerprint_note": "The tutorial publishes the long key ID 0xD94AA3F0EFE21092 (Ubuntu CD Image Automatic Signing Key 2012); the full fingerprint is that key's, and it produced a VALIDSIG on SHA256SUMS on 2026-11-08."
+      },
+      "details": {
+        "family": null,
+        "desktop": null,
+        "file_manager": null,
+        "packages": null,
+        "init": null,
+        "release_model": "LTS (26.04 LTS 'Resolute Raccoon')",
+        "looks_like": null,
+        "sources": [
+          "https://ubuntu.com/desktop"
+        ],
+        "checked": "2026-11-08",
+        "note": "Display only. Blank (null) fields were not confirmed on an official page on the checked date; they are left empty rather than guessed."
+      },
+      "wifi_preseed": null
+    },
+    {
+      "id": "mint-cinnamon",
+      "name": "Linux Mint 22.3 Cinnamon",
+      "version": "22.3",
+      "arch": "amd64",
+      "media": "usb",
+      "official_page": "https://linuxmint.com/download.php",
+      "image_name": "linuxmint-22.3-cinnamon-64bit.iso",
+      "url_pattern": "https://mirrors.edge.kernel.org/linuxmint/stable/{version}/linuxmint-{version}-cinnamon-64bit.iso",
+      "image_url": "https://mirrors.edge.kernel.org/linuxmint/stable/22.3/linuxmint-22.3-cinnamon-64bit.iso",
+      "checksum": {
+        "algorithm": "sha256",
+        "url": "https://mirrors.edge.kernel.org/linuxmint/stable/22.3/sha256sum.txt"
+      },
+      "signature": {
+        "url": "https://mirrors.edge.kernel.org/linuxmint/stable/22.3/sha256sum.txt.gpg",
+        "covers": "checksum_file",
+        "key_fingerprint": "27DEB15644C6B3CF3BD7D291300F846BA25BAE09",
+        "key_keyserver": "hkps://keyserver.ubuntu.com",
+        "key_url": null,
+        "fingerprint_source": "https://linuxmint-installation-guide.readthedocs.io/en/latest/verify.html",
+        "fingerprint_note": "Mirror is kernel.org (one of Mint's listed mirrors); the signature, not the mirror, is what you trust."
+      },
+      "details": {
+        "family": "Ubuntu (Linux Mint 22.x is based on Ubuntu 24.04)",
+        "desktop": "Cinnamon",
+        "file_manager": null,
+        "packages": null,
+        "init": null,
+        "release_model": "LTS, supported until April 2029",
+        "looks_like": "https://www.linuxmint.com/screenshots.php",
+        "sources": [
+          "https://www.linuxmint.com/rel_zena_cinnamon.php",
+          "https://www.linuxmint.com/download.php"
+        ],
+        "checked": "2026-11-08",
+        "note": "Display only. Blank (null) fields were not confirmed on an official page on the checked date; they are left empty rather than guessed."
+      },
+      "wifi_preseed": null
+    },
+    {
+      "id": "fedora-workstation",
+      "name": "Fedora Workstation 45",
+      "version": "45-1.4",
+      "arch": "x86_64",
+      "media": "usb",
+      "official_page": "https://fedoraproject.org/workstation/download",
+      "image_name": "Fedora-Workstation-Live-45-1.4.x86_64.iso",
+      "url_pattern": "https://download.fedoraproject.org/pub/fedora/linux/releases/45/Workstation/x86_64/iso/Fedora-Workstation-Live-{version}.x86_64.iso",
+      "image_url": "https://download.fedoraproject.org/pub/fedora/linux/releases/45/Workstation/x86_64/iso/Fedora-Workstation-Live-45-1.4.x86_64.iso",
+      "checksum": {
+        "algorithm": "sha256",
+        "url": "https://dl.fedoraproject.org/pub/fedora/linux/releases/45/Workstation/x86_64/iso/Fedora-Workstation-45-1.4-x86_64-CHECKSUM"
+      },
+      "signature": {
+        "url": null,
+        "covers": "checksum_file_clearsigned",
+        "key_fingerprint": "4F50A6114CD5C6976A7F1179655A4B02F577861E",
+        "key_keyserver": null,
+        "key_url": "https://fedoraproject.org/fedora.gpg",
+        "fingerprint_source": "https://fedoraproject.org/security/",
+        "fingerprint_note": "The CHECKSUM file is itself OpenPGP clearsigned by the Fedora 45 key."
+      },
+      "details": {
+        "family": null,
+        "desktop": "GNOME",
+        "file_manager": null,
+        "packages": null,
+        "init": null,
+        "release_model": null,
+        "looks_like": "https://fedoraproject.org/workstation/",
+        "sources": [
+          "https://fedoraproject.org/workstation/"
+        ],
+        "checked": "2026-11-08",
+        "note": "Display only. Blank (null) fields were not confirmed on an official page on the checked date; they are left empty rather than guessed."
+      },
+      "wifi_preseed": null
+    },
+    {
+      "id": "debian-netinst",
+      "name": "Debian 13.7.0 'trixie' netinst",
+      "version": "13.7.0",
+      "arch": "amd64",
+      "media": "usb",
+      "official_page": "https://www.debian.org/releases/trixie/",
+      "image_name": "debian-13.7.0-amd64-netinst.iso",
+      "url_pattern": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-{version}-amd64-netinst.iso",
+      "image_url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.7.0-amd64-netinst.iso",
+      "checksum": {
+        "algorithm": "sha256",
+        "url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA256SUMS"
+      },
+      "signature": {
+        "url": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA256SUMS.sign",
+        "covers": "checksum_file",
+        "key_fingerprint": "DF9B9C49EAA9298432589D76DA87E80D6294BE9B",
+        "key_keyserver": "hkps://keyring.debian.org",
+        "key_url": null,
+        "fingerprint_source": "https://www.debian.org/CD/verify",
+        "fingerprint_note": "'current' moves with each point release; when it does, the image name and pattern version change too."
+      },
+      "details": {
+        "family": null,
+        "desktop": null,
+        "file_manager": null,
+        "packages": null,
+        "init": null,
+        "release_model": "Stable release; Debian 13 has full support until 2028-08-09 and LTS until 2030-06-30",
+        "looks_like": null,
+        "sources": [
+          "https://www.debian.org/releases/trixie/"
+        ],
+        "checked": "2026-11-08",
+        "note": "Display only. Blank (null) fields were not confirmed on an official page on the checked date; they are left empty rather than guessed."
+      },
+      "wifi_preseed": null
+    },
+    {
+      "id": "rpi-os-lite-arm64",
+      "name": "Raspberry Pi OS Lite 64-bit (Debian 13 trixie based) 2026-10-06",
+      "version": "2026-10-06",
+      "arch": "arm64",
+      "media": "sd",
+      "official_page": "https://www.raspberrypi.com/software/operating-systems/",
+      "image_name": "2026-10-06-raspios-trixie-arm64-lite.img.xz",
+      "url_pattern": "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-{version}/{version}-raspios-trixie-arm64-lite.img.xz",
+      "image_url": "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2026-10-06/2026-10-06-raspios-trixie-arm64-lite.img.xz",
+      "checksum": {
+        "algorithm": "sha256",
+        "url": "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2026-10-06/2026-10-06-raspios-trixie-arm64-lite.img.xz.sha256"
+      },
+      "signature": {
+        "url": "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2026-10-06/2026-10-06-raspios-trixie-arm64-lite.img.xz.sig",
+        "covers": "image",
+        "key_fingerprint": null,
+        "key_keyserver": null,
+        "key_url": null,
+        "fingerprint_source": null,
+        "fingerprint_note": "UNVERIFIED, not pinned. The .sig names issuer F4AADD86C4687D69AE04543E796C114AD12B2292 ('Raspberry Pi Downloads Signing Key' on keyserver.ubuntu.com), but no official raspberrypi.com page publishing that fingerprint was found on 2026-11-08. The checksum is the img.xz (compressed) file's hash. Raspberry Pi Imager does its own verification."
+      },
+      "details": {
+        "family": "Debian 13 'trixie' (per the official image name)",
+        "desktop": "none (Lite edition)",
+        "file_manager": null,
+        "packages": null,
+        "init": null,
+        "release_model": null,
+        "looks_like": null,
+        "sources": [
+          "https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2026-10-06/"
+        ],
+        "checked": "2026-11-08",
+        "note": "Display only. Blank (null) fields were not confirmed on an official page on the checked date; they are left empty rather than guessed."
+      },
+      "wifi_preseed": {
+        "method": "cloud-init",
+        "source": "https://www.raspberrypi.com/news/cloud-init-on-raspberry-pi-os/",
+        "note": "Images from 2025-11-24 on read network-config and user-data from the FAT boot partition on first boot."
+      }
+    },
+    {
+      "id": "endeavouros",
+      "name": "EndeavourOS Titan Nova 2026.08.15",
+      "version": "2026.08.15",
+      "arch": "x86_64",
+      "media": "usb",
+      "official_page": "https://endeavouros.com/download/",
+      "image_name": "EndeavourOS_Titan-Nova-2026.08.15.iso",
+      "url_pattern": "https://mirrors.gigenet.com/endeavouros/iso/EndeavourOS_Titan-Nova-{version}.iso",
+      "image_url": "https://mirrors.gigenet.com/endeavouros/iso/EndeavourOS_Titan-Nova-2026.08.15.iso",
+      "checksum": {
+        "algorithm": "sha512",
+        "url": "https://mirrors.gigenet.com/endeavouros/iso/EndeavourOS_Titan-Nova-2026.08.15.iso.sha512sum",
+        "expected": "3f83bd745e9d5d518bdf6fc9a24092fb5347da449a6e109c6572bf999097b8b548c4cf1848fdfb3c7c2823f558c3f5b51a127060d9c5b81b9ad89b4041bee7fa",
+        "expected_source": "https://endeavouros.com/download/"
+      },
+      "signature": {
+        "url": "https://mirrors.gigenet.com/endeavouros/iso/EndeavourOS_Titan-Nova-2026.08.15.iso.sig",
+        "covers": "image",
+        "key_fingerprint": "8F43FC374CD4CEEA19CEE323E3D8752ACDF595A1",
+        "key_keyserver": "hkps://keyserver.ubuntu.com",
+        "key_url": null,
+        "fingerprint_source": "https://endeavouros.com/download/",
+        "fingerprint_note": "Mirror is GigeNet (the US mirror on the official list). The signature covers the ISO itself, so it can only be checked after the full download (prep.py verify --sig). The code name in the file name changes between releases; the url_pattern only holds for Titan Nova."
+      },
+      "details": {
+        "family": "Arch-based",
+        "desktop": null,
+        "file_manager": null,
+        "packages": "pacman, plus yay for the AUR",
+        "init": null,
+        "release_model": null,
+        "looks_like": null,
+        "sources": [
+          "https://endeavouros.com/"
+        ],
+        "checked": "2026-11-08",
+        "note": "Display only. Blank (null) fields were not confirmed on an official page on the checked date; they are left empty rather than guessed."
+      },
+      "wifi_preseed": null
+    }
+  ]
+}

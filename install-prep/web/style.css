@@ -1,0 +1,56 @@
+:root { --bg:#120c14; --bg2:#1c1320; --card:#1f1624; --line:#3a2b3f; --gold:#d8b46e;
+        --text:#e9e1ea; --dim:#a99aad; --teal:#7fb3ad; --teal2:#9fd0c9; --bad:#e08a7a; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background: radial-gradient(ellipse at top, var(--bg2), var(--bg) 70%) fixed; color: var(--text);
+       font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header, main, footer { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+header { padding-top: 28px; text-align: center; }
+:root { --copper:#dfa27f; --copper-bright:#f3c4a6; }
+.toplinks { display: flex; justify-content: space-between; align-items: center; }
+#homeLink, #srcLink { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; font-size: 11px;
+       letter-spacing: .12em; text-transform: uppercase; color: var(--copper); text-decoration: none; opacity: .9; }
+#srcLink { color: var(--teal); }
+#homeLink:hover { color: var(--copper-bright); opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+#srcLink:hover { color: var(--teal2); opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+#homeLink:focus-visible, #srcLink:focus-visible { outline: 2px solid var(--copper-bright); outline-offset: 3px; border-radius: 4px; }
+.warnbox { border: 1px solid var(--copper); border-radius: 8px; padding: 10px 12px; color: var(--copper-bright); font-size: 14px; }
+details.more { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+details.more summary { color: var(--teal); cursor: pointer; font-size: 14px; }
+details.more summary:hover { color: var(--teal2); }
+h1 { color: var(--gold); font-weight: 800; letter-spacing: .02em; margin: 8px 0 0; font-size: 40px; }
+.sub { color: var(--gold); font-style: italic; font-size: 14px; margin: 2px 0 24px; opacity: .85; }
+h2 { color: var(--gold); font-size: 19px; margin: 0 0 12px; font-weight: 600; }
+h3 { color: var(--gold); font-size: 15px; margin: 18px 0 6px; font-weight: 600; }
+a { color: var(--teal); text-decoration: none; }
+a:hover { color: var(--teal2); text-decoration: underline; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; margin: 0 0 18px; }
+label { display: block; color: var(--dim); font-size: 13px; margin: 12px 0 4px; }
+select, input[type=text] { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line);
+       border-radius: 8px; padding: 9px 10px; font: inherit; }
+input[type=text] { font-family: ui-monospace, monospace; font-size: 13px; }
+input[type=file] { color: var(--dim); }
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+code { color: var(--gold); }
+pre.cmd, pre.result { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+       white-space: pre-wrap; word-break: break-all; }
+pre.result:empty { display: none; }
+.result.ok { border-color: var(--teal); color: var(--teal2); }
+.result.bad { border-color: var(--bad); color: var(--bad); }
+.btn { background: transparent; color: var(--teal); border: 1px solid var(--teal); border-radius: 999px;
+       padding: 7px 18px; font: inherit; cursor: pointer; margin-top: 14px; }
+.btn:hover:not(:disabled) { color: var(--teal2); border-color: var(--teal2); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.ghost { color: var(--dim); border-color: var(--line); }
+.row { display: flex; gap: 10px; }
+progress { width: 100%; margin-top: 12px; accent-color: var(--gold); }
+.details dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 14px 0 0; font-size: 14px; }
+.details dt { color: var(--dim); }
+.details dd { margin: 0; word-break: break-all; }
+.note { color: var(--dim); font-size: 13px; }
+.soon { color: var(--dim); font-size: 13px; font-style: italic; }
+.warn { color: var(--bad); }
+.steps li { margin: 3px 0; }
+footer { text-align: center; padding: 10px 20px 36px; }
+.motto { color: var(--gold); font: italic 12px ui-monospace, monospace; text-transform: uppercase; letter-spacing: .12em; opacity: .8; }
+@media (max-width: 560px) { h1 { font-size: 32px; } }

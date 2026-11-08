@@ -1,0 +1,9 @@
+{
+   "blockdevices": [
+      {"name":"sda","path":"/dev/sda","size":64023257088,"model":"Live USB","serial":"LIVE123","tran":"usb","rm":"1","hotplug":"1","type":"disk","mountpoint":null,
+         "children":[{"name":"sda1","path":"/dev/sda1","size":4000000000,"type":"part","rm":"1","hotplug":"1","tran":"usb","mountpoint":"/run/archiso/bootmnt"},
+                     {"name":"sda2","path":"/dev/sda2","size":60000000000,"type":"part","rm":"1","hotplug":"1","tran":"usb","mountpoint":"/"}]
+      },
+      {"name":"sdb","path":"/dev/sdb","size":15931539456,"model":"Cruzer Blade","serial":"4C530001","tran":"usb","rm":"1","hotplug":"1","type":"disk","mountpoint":null}
+   ]
+}

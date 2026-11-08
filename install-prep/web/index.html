@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Radix · Linux install assistant</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <nav class="toplinks"><a id="homeLink" href="https://opencommons.app/" title="Back to the OpenCommons home page"><span aria-hidden="true">←</span> OpenCommons</a>
+    <a id="srcLink" href="https://github.com/bucktuna/alienstack/tree/main/install-prep" rel="noopener noreferrer">Source on GitHub</a></nav>
+  <h1>Radix</h1>
+  <p class="sub">Linux install assistant</p>
+</header>
+<main>
+  <section class="card" id="flow">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><b>Scan</b> the target machine <span class="soon">(coming: recommendations from your hardware)</span></li>
+      <li><b>Pick</b> a distro</li>
+      <li><b>Download</b> it from the official site</li>
+      <li><b>Verify</b> the checksum, here in your browser or with <code>prep.py</code></li>
+      <li><b>Flash</b> it to a USB stick or SD card, <em>outside the browser</em></li>
+    </ol>
+    <p class="note">Nothing you pick or hash here leaves this page. No tracking, no external scripts.</p>
+  </section>
+
+  <section class="card" id="pick">
+    <h2>1 · Pick a distro</h2>
+    <label for="distro">Distro</label>
+    <select id="distro"><option>Loading catalog…</option></select>
+    <div id="details" class="details"></div>
+  </section>
+
+  <section class="card" id="verify">
+    <h2>2 · Verify your download</h2>
+    <p>Choose the image you downloaded. It is hashed locally in 4 MB slices, so even a 6 GB
+      ISO is fine; it just takes a while (roughly a minute per GB on a typical laptop).
+      The file is never uploaded.</p>
+    <label for="expected">Expected SHA-256 (from the official checksum file)</label>
+    <input id="expected" type="text" spellcheck="false" autocomplete="off" placeholder="64 hex characters">
+    <label for="file">Image file</label>
+    <input id="file" type="file" accept=".iso,.img,.xz,.gz">
+    <div class="row">
+      <button id="go" class="btn" disabled>Check SHA-256</button>
+      <button id="stop" class="btn ghost" hidden>Stop</button>
+    </div>
+    <progress id="prog" max="1" value="0" hidden></progress>
+    <pre id="result" class="result" aria-live="polite"></pre>
+    <p class="note">Your browser can check the hash but not the GPG signature on the checksum
+      file. For that run <code>python3 prep.py fetch-sums &lt;distro&gt;</code>.
+      EndeavourOS publishes SHA-512 only: use <code>prep.py verify --sums-file</code> or <code>sha512sum -c</code>.</p>
+  </section>
+
+  <section class="card" id="sd">
+    <h2>3 · Find your USB stick or SD card</h2>
+    <ul>
+      <li>Built-in SD slot: <code>/dev/mmcblk0</code>. USB stick or USB card reader: <code>/dev/sdX</code>.</li>
+      <li>Run <code>lsblk</code> before and after inserting it; the new disk is the one. Or <code>sudo dmesg -w</code> while inserting.</li>
+      <li><code>python3 prep.py drives -v</code> lists only removable drives and says why others are hidden.</li>
+      <li>macOS: <code>diskutil list external physical</code>. Windows: Disk Management (<code>diskmgmt.msc</code>).</li>
+      <li>Check the size matches the label. A new cheap card? Test it with <code>f3</code> for fake capacity.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="flash">
+    <h2>4 · Flash it (outside the browser)</h2>
+    <p>Web pages cannot write to USB drives: browsers block USB mass-storage devices on
+      purpose. So the writing happens in a tool on your own computer.</p>
+    <h3>Radix CLI (Linux)</h3>
+    <pre class="cmd" id="flashcmd">python3 prep.py flash &lt;image&gt; --device /dev/sdX
+# rehearsal only. To write, add:  --write --confirm &lt;drive serial&gt; --sums-file &lt;sums&gt;  (with sudo)</pre>
+    <p>It refuses system disks, checks the image first, makes you type the drive's serial,
+      then reads every byte back to confirm the write.</p>
+    <h3>Or use a tool you already have</h3>
+    <ul>
+      <li><b>Linux:</b> GNOME Disks → ⋮ → Restore Disk Image…, Raspberry Pi Imager, or balenaEtcher.</li>
+      <li><b>macOS:</b> Raspberry Pi Imager or balenaEtcher.</li>
+      <li><b>Windows:</b> Rufus, Raspberry Pi Imager or balenaEtcher.</li>
+    </ul>
+    <h3>Optional: pre-seed Wi-Fi (Raspberry Pi OS only)</h3>
+    <p>Raspberry Pi OS reads a network config from the card on first boot, so Radix can add your
+      Wi-Fi at flash time: <code>--wifi-ssid NAME --wifi-psk-file FILE --wifi-country US</code>.
+      The password is read from a file or prompt, never typed on the command line. Generic live
+      ISOs can't be pre-seeded.</p>
+    <p class="warnbox"><b>If you used this tool to pre-program a Wi-Fi password, the password will
+      remain on this machine, so don't give the machine away.</b> The password is also stored in
+      plain text on the USB/SD card's boot partition.</p>
+    <p class="note">A one-click Radix Flasher helper is planned; it will keep the same rules.</p>
+  </section>
+</main>
+<footer><span class="motto">foss for life</span></footer>
+<script src="sha256.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

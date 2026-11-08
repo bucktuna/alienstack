@@ -2,6 +2,8 @@
 
 **Project home: [opencommons.app](https://opencommons.app)**, the Open Commons, where the public builds of these projects live.
 
+**Radix, the Linux install assistant: see [install-prep/](install-prep/)** (distro catalog, checksum/signature verification, safe USB/SD flashing).
+
 A self-hosted local-AI and voice playground by bucktuna. This clean source export
 contains three cooperating applications, not a single installer:
 
