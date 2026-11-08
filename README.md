@@ -13,6 +13,8 @@ contains three cooperating applications, not a single installer:
 
 ## Models and hardware
 
+**Download list, sizes and placement paths: see [MODELS.md](MODELS.md).** No weights are stored in this repo and none of the downloads need a sign-in.
+
 Sentinel uses `huihui_ai/qwen3-abliterated:14b`; Oracle and the Parliament example
 bots/reviewer use `llama3.1:8b`. The standalone English-only Qwen Modelfile is
 included; the complete deployed Sentinel persona was not available outside its
