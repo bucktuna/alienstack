@@ -1,5 +1,7 @@
 # Models: what to download and where it goes
 
+Part of the Open Commons projects. Project home: [opencommons.app](https://opencommons.app).
+
 Model weights are **not stored in this repository**. GitHub rejects files over
 100 MB, and the language models alone are about 14 GB. Every download below is
 public and needs **no account, no sign-in and no token**.
