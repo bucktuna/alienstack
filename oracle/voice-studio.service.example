@@ -1,0 +1,16 @@
+[Unit]
+Description=Oracle voice studio
+After=network-online.target
+[Service]
+Type=simple
+WorkingDirectory=%h/alien-stack/oracle
+Environment=ORACLE_OLLAMA=http://127.0.0.1:11434
+Environment=ORACLE_MODEL=llama3.1:8b
+Environment=TALK_MODEL=llama3.1:8b
+Environment=TALK_WHISPER=small.en
+ExecStart=%h/alien-stack/oracle/venv311/bin/python %h/alien-stack/oracle/gui.py --host 127.0.0.1 --port 7860
+Restart=on-failure
+RestartSec=5
+UMask=0077
+[Install]
+WantedBy=default.target

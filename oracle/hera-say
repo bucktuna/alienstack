@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""hera-say: render a marked-up script (or an Oracle request) through the RUNNING Oracle studio
+(systemd user service voice-studio.service, http://127.0.0.1:7860).
+
+Reads the script from stdin, POSTs it to the studio's HTTP API (no second model copy),
+waits for the job, downloads MP3 + WAV (+ timing JSON) and prints the MP3 path.
+All markup tags (warble, pitchstep, jumpy, wobble, flip, chaos, robot, radio, telephone, echo, cues...) pass
+straight through in the script. --oracle sends stdin as a free-form request to The Oracle instead.
+
+  echo 'Hello, my king. [breath in 0.4s] <pitch +3>Higher.</pitch> [whistle up 1s]' | \
+    hera-say --voice 'bf_emma:0.7,af_heart:0.3' --pitch -1 --seed 7 \
+             --out ~/alien-stack/oracle/clips/NAME.mp3
+"""
+import argparse, json, os, sys, time, urllib.error, urllib.request
+from pathlib import Path
+
+def call(base, path, data=None, timeout=30):
+    req = urllib.request.Request(base + path, data=None if data is None else json.dumps(data).encode(),
+                                 headers={'Content-Type': 'application/json'} if data is not None else {})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+def parse_voice(spec):
+    parts = [p.strip() for p in spec.split(',') if p.strip()]
+    if not parts: sys.exit('hera-say: --voice is empty')
+    if len(parts) == 1 and ':' not in parts[0]:
+        return parts[0], []
+    blends = []
+    for p in parts:
+        name, _, w = p.partition(':')
+        blends.append({'voice': name.strip(), 'weight': float(w) if w else 1.0})
+    if len(blends) > 3: sys.exit('hera-say: at most 3 blended voices')
+    return blends[0]['voice'], blends
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('--voice', default='af_heart', help="voice or blend, e.g. 'bf_emma:0.7,af_heart:0.3'")
+    ap.add_argument('--pitch', type=float, default=0, help='global semitones (-24..24)')
+    ap.add_argument('--speed', type=float, default=1.0, help='0.5..2')
+    ap.add_argument('--formant', type=float, default=1.0, help='0.7..1.4')
+    ap.add_argument('--seed', type=int, default=42)
+    ap.add_argument('--overlay-voice', help='second voice speaking the same words on top (duet)')
+    ap.add_argument('--overlay-gain', type=float, default=0.5, help='overlay volume 0..1 (or 0..100 %%)')
+    ap.add_argument('--overlay-pitch', type=float, default=0, help='overlay pitch offset, semitones (-12..12)')
+    ap.add_argument('--overlay-delay', type=float, default=0, help='overlay delay, ms (0..500)')
+    ap.add_argument('--title', default='', help='title shown in Recent clips')
+    ap.add_argument('--json', dest='extra', default=None, help='extra JSON merged into the /api/render body')
+    ap.add_argument('--oracle', action='store_true', help='stdin is a free-form request for The Oracle (uses ~/alien-stack/oracle/.oracle-token)')
+    ap.add_argument('--out', required=True, help='output .mp3 path (a .wav and .json are kept beside it)')
+    ap.add_argument('--url', default=os.environ.get('VOICE_STUDIO_URL', 'http://127.0.0.1:7860'))
+    ap.add_argument('--timeout', type=float, default=600, help='seconds to wait for the render')
+    a = ap.parse_args()
+
+    text = sys.stdin.read().strip()
+    if not text: sys.exit('hera-say: no script on stdin')
+    voice, blends = parse_voice(a.voice)
+    body = {'text': text, 'voice': voice, 'blends': blends, 'pitch': a.pitch,
+            'speed': a.speed, 'formant': a.formant, 'seed': a.seed, 'title': a.title[:80], 'source': 'hera-say'}
+    if a.overlay_voice:
+        gain = a.overlay_gain/100 if a.overlay_gain > 1 else a.overlay_gain
+        body['overlay'] = {'voice': a.overlay_voice, 'gain': gain, 'pitch': a.overlay_pitch, 'delay_ms': a.overlay_delay}
+    if a.extra:
+        body.update(json.loads(a.extra))
+    base = a.url.rstrip('/')
+    out = Path(os.path.expanduser(a.out))
+    if out.suffix.lower() != '.mp3': out = out.with_suffix('.mp3')
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    deadline = time.time() + a.timeout
+    if a.oracle:
+        token = (Path(__file__).resolve().parent/'.oracle-token').read_text().strip()
+        req = urllib.request.Request(base + '/api/oracle/text?wait=1', data=text.encode(),
+                                     headers={'Content-Type': 'text/plain', 'X-Oracle-Token': token})
+        try:
+            with urllib.request.urlopen(req, timeout=a.timeout) as r:
+                res = json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            sys.exit(f'hera-say: oracle rejected ({e.code}): {e.read().decode(errors="replace")}')
+        if res.get('status') != 'ready':
+            sys.exit(f"hera-say: oracle render {res.get('status')}: {res.get('error')}")
+        st = {'mp3': res['mp3'].replace(base, ''), 'wav': res['wav'].replace(base, ''), 'sidecar': f"/audio/{res['job_id']}.json"}
+        print(f"# {res['title']}: {res['script']}", file=sys.stderr)
+    while not a.oracle:  # the studio renders one job at a time; wait our turn on 429
+        try:
+            job = json.loads(call(base, '/api/render', body)); break
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode(errors='replace')
+            if e.code == 429 and time.time() < deadline:
+                time.sleep(1.5); continue
+            sys.exit(f'hera-say: render rejected ({e.code}): {detail}')
+        except urllib.error.URLError as e:
+            sys.exit(f'hera-say: the Oracle studio is not reachable at {base} ({e.reason}). '
+                     'Check: systemctl --user status voice-studio')
+    while not a.oracle:
+        st = json.loads(call(base, job['status_url']))
+        if st['status'] == 'ready': break
+        if st['status'] == 'error': sys.exit(f"hera-say: render failed: {st.get('message')}")
+        if time.time() > deadline: sys.exit('hera-say: timed out waiting for render')
+        time.sleep(0.5)
+    for key, path in (('mp3', out), ('wav', out.with_suffix('.wav')), ('sidecar', out.with_suffix('.json'))):
+        tmp = path.with_name(path.name + '.part')
+        tmp.write_bytes(call(base, st[key], timeout=120)); tmp.replace(path)
+    print(out)
+
+if __name__ == '__main__':
+    main()

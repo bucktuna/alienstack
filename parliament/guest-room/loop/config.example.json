@@ -1,0 +1,6 @@
+{
+  "delay_seconds": 20,
+  "history": 15,
+  "max_chars": 600,
+  "checkin_minutes": 5
+}

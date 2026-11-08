@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""Owner moderation CLI. Never displays offending message text or room token."""
+import sys, json, time, urllib.request, urllib.error
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parent.parent))
+import room_policy as policy
+args=sys.argv[1:]
+if not args or args[0] not in ('list','strikes','unban','topic','adduser','deluser','users','checkin'):
+    raise SystemExit('Usage: modctl list | strikes | unban <IP|name|x:username> | topic [new topic] | adduser <name> | deluser <name> | users | checkin')
+cmd=args[0]
+if cmd=='checkin':
+    print('Check-in requested; it will run after any open proposal/closings.' if policy.request_checkin() else 'A check-in is already pending or running.')
+elif cmd=='adduser':
+    if len(args)<2: raise SystemExit('Usage: modctl adduser <name>')
+    try: print(policy.add_user(' '.join(args[1:]))) # one-time passcode, owner terminal only
+    except ValueError as e: raise SystemExit(str(e))
+elif cmd=='deluser':
+    if len(args)<2: raise SystemExit('Usage: modctl deluser <name>')
+    uid=' '.join(args[1:]).strip().casefold()
+    with policy.state_file('members') as db: existed=db.pop(uid,None) is not None
+    with policy.state_file('sessions') as db:
+        for k in list(db):
+            if db[k]['member']==uid: del db[k]
+    print('Member removed.' if existed else 'No matching member.')
+elif cmd=='users':
+    with policy.state_file('members') as db:
+        for uid,m in db.items(): print(m['name'])
+elif cmd=='topic':
+    token=(Path(__file__).resolve().parent.parent/'guest-token.txt').read_text().strip()
+    data=json.dumps({'bot':'Owner','text':'/topic '+ ' '.join(args[1:]),'source':'owner'}).encode()
+    request=urllib.request.Request('http://127.0.0.1:8766/guest/'+token+'/post',data,{'Content-Type':'application/json'})
+    try:
+        with urllib.request.urlopen(request,timeout=10) as r: print(json.load(r)['text'])
+    except urllib.error.HTTPError as e:
+        print(json.load(e).get('error','Vote call failed')); raise SystemExit(1)
+else:
+    with policy.state_file('bans') as db:
+        bans=db.setdefault('bans',{}); strikes=db.setdefault('strikes',{})
+        if cmd=='unban':
+            if len(args)!=2: raise SystemExit('Usage: modctl unban <IP|name|x:username>')
+            target=args[1].casefold().lstrip('@')
+            keys={k for k,v in bans.items() if target in (k.casefold(),k.split(':',1)[-1].casefold(),v['name'].casefold().lstrip('@'))}
+            keys|={k for k,ss in strikes.items() if target in (k.casefold(),k.split(':',1)[-1].casefold()) or any(s['name'].casefold().lstrip('@')==target for s in ss)}
+            for k in keys: bans.pop(k,None); strikes.pop(k,None)
+            print('Cleared bans and strikes for',len(keys),'identities.')
+        elif cmd=='list':
+            for k,v in bans.items(): print(k,repr(v['name']),v['reason'],time.strftime('%Y-%m-%d %H:%M:%S %Z',time.localtime(v['time'])))
+            print(len(bans),'banned identities')
+        else:
+            for k,ss in strikes.items():
+                recent=[s for s in ss if time.time()-s['time']<86400]
+                if recent: print(k,repr(recent[-1]['name']),len(recent),'strikes in 24h')

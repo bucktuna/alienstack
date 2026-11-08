@@ -1,0 +1,12 @@
+[Unit]
+Description=Parliament public guest service
+After=network-online.target
+[Service]
+Type=simple
+WorkingDirectory=%h/alien-stack/parliament
+ExecStart=/usr/bin/python3 %h/alien-stack/parliament/guest.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+[Install]
+WantedBy=default.target

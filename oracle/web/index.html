@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#24132e">
+<title>Oracle</title>
+<link rel="stylesheet" href="/studio.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true">◉</span><div><h1>Oracle</h1><p>Ask for any voice, any way you like.</p></div></div>
+  <button class="icon-btn" id="help-open" type="button" aria-label="How tags work" title="How tags work">?</button>
+</header>
+
+<main class="layout">
+<div class="col left">
+  <section class="card talk" id="talk" aria-labelledby="talk-title">
+    <div class="oracle-head">
+      <h2 id="talk-title">Talk with Hera</h2>
+      <button class="link" id="talk-clear" type="button">Clear</button>
+    </div>
+    <p class="hint">Tap and speak, or hold while you talk. Hera answers out loud.</p>
+    <div class="thread talk-thread" id="talk-thread" aria-live="polite"></div>
+    <div class="talk-controls">
+      <button type="button" class="talk-btn" id="talk-btn" aria-pressed="false"><span class="talk-ico" aria-hidden="true">🎙</span><span id="talk-label">Tap to talk</span></button>
+    </div>
+    <p class="status" id="talk-status" role="status"></p>
+    <p class="talk-note" id="talk-note" hidden></p>
+    <form class="talk-type" id="talk-type"><input id="talk-input" maxlength="500" autocomplete="off" placeholder="…or type to Hera" aria-label="Type to Hera"><button class="ghost sm" id="talk-send">Send</button></form>
+    <label class="toggle talk-auto"><input type="checkbox" id="talk-auto"><span>Listen again after Hera answers</span></label>
+  </section>
+  <section class="card oracle c-oracle" id="oracle" aria-labelledby="oracle-title">
+    <div class="oracle-head">
+      <h2 id="oracle-title">Ask the Oracle</h2>
+      <button class="link" id="oracle-clear" type="button">Clear chat</button>
+    </div>
+    <p class="hint">Describe what you want to hear. It's written, voiced and played for you.</p>
+    <div class="thread" id="thread" aria-live="polite"></div>
+    <div class="chips" id="oracle-chips">
+      <button type="button" class="chip" data-prompt="Tell a short story about a red fox while you change the pitch of your voice every two seconds.">🦊 Red fox</button>
+      <button type="button" class="chip" data-prompt="Say a dramatic welcome line with a deep voice an octave below you, both speaking at the same time.">🎶 Octave overlay</button>
+      <button type="button" class="chip" data-prompt="A cheerful announcer slowly loses control and melts into total chaos.">🌀 Chaos</button>
+    </div>
+    <form class="ask" id="oracle-form">
+      <textarea id="oracle-input" rows="2" maxlength="1000" placeholder="e.g. A red fox story, pitch changing every two seconds" aria-label="Your request to the Oracle"></textarea>
+      <div class="ask-row">
+        <button type="button" class="mic" id="mic" hidden aria-label="Speak your request">🎤</button>
+        <button type="submit" class="primary" id="oracle-send">Ask the Oracle</button>
+      </div>
+      <p class="status" id="oracle-status" role="status"></p>
+    </form>
+  </section>
+</div>
+<div class="col right">
+  <section class="card c-moods" aria-labelledby="moods-title">
+    <div class="section-head"><h2 id="moods-title">Moods</h2><span class="muted">Tap to hear · swipe for more</span></div>
+    <div class="moods" id="moods"></div>
+  </section>
+  <section class="card c-script" id="play" aria-labelledby="script-title">
+    <div class="section-head"><h2 id="script-title">Your script</h2><button class="link" id="clear" type="button">Clear</button></div>
+    <div id="editor" class="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Script" spellcheck="true"></div>
+    <div class="tools">
+      <button type="button" class="tool-toggle" id="t-cues" aria-expanded="false" aria-controls="cues">＋ Sounds</button>
+      <button type="button" class="tool-toggle" id="t-wraps" aria-expanded="false" aria-controls="wraps">✦ Styles</button>
+    </div>
+    <div class="toolbar" id="cues" hidden><p class="mini">Drops a sound where your cursor is.</p></div>
+    <div class="toolbar" id="wraps" hidden><p class="mini">Select some words first, then pick a style.</p></div>
+    <button type="button" class="primary big" id="render">▶ Make it talk</button>
+    <div class="progress" id="progress" hidden><div id="bar"></div></div>
+    <p class="status" id="status" role="status"></p>
+    <div id="result" hidden>
+      <p id="play-title" class="result-title">Your clip</p>
+      <audio id="player" controls preload="auto"></audio>
+      <div class="row"><a class="ghost sm" id="dl-mp3" download>⬇ MP3</a><a class="ghost sm" id="dl-wav" download>⬇ WAV</a></div>
+    </div>
+    <details class="advanced" id="advanced">
+      <summary>Advanced: raw script &amp; seed</summary>
+      <textarea id="raw" rows="5" spellcheck="false" aria-label="Raw script markup"></textarea>
+      <div class="row"><button type="button" class="ghost sm" id="raw-apply">Copy script</button>
+        <label class="seed">Seed <input id="seed" type="number" min="0" max="4294967295" value="42"></label>
+        <button type="button" class="ghost sm" id="shuffle" aria-label="Random seed">🎲</button></div>
+    </details>
+  </section>
+  <details class="card fold c-voice" id="voice-settings">
+    <summary><span class="fold-title">Voice settings</span><span class="fold-sum" id="voice-summary"></span></summary>
+    <label class="field">Main voice<select id="voice"></select></label>
+    <p class="desc" id="voice-desc"></p>
+    <div class="slider"><div class="slider-labels"><span>Lower</span><b id="pitch-val">Pitch 0</b><span>Higher</span></div><input type="range" id="pitch" min="-12" max="12" step="1" value="0" aria-label="Pitch"></div>
+    <div class="slider"><div class="slider-labels"><span>Slower</span><b id="speed-val">Speed 1.00×</b><span>Faster</span></div><input type="range" id="speed" min="0.5" max="2" step="0.05" value="1" aria-label="Speed"></div>
+    <div class="slider"><div class="slider-labels"><span>Lighter</span><b id="depth-val">Depth normal</b><span>Deeper</span></div><input type="range" id="depth" min="-1" max="1" step="0.05" value="0" aria-label="Voice depth"></div>
+    <label class="toggle"><input type="checkbox" id="blend-on"><span>Blend with a second voice</span></label>
+    <div id="blend-box" class="sub" hidden>
+      <label class="field">Blend with<select id="blend-voice"></select></label>
+      <div class="slider"><div class="slider-labels"><span id="blend-a">Heart</span><b id="blend-val">30%</b><span id="blend-b">Emma</span></div>
+      <input type="range" id="blend-mix" min="0" max="100" step="5" value="30" aria-label="Blend amount"></div>
+    </div>
+    <label class="toggle"><input type="checkbox" id="ov-on"><span>Duet: a second voice speaks on top</span></label>
+    <div id="ov-box" class="sub" hidden>
+      <label class="field">Duet voice<select id="ov-voice"></select></label>
+      <div class="slider"><div class="slider-labels"><span>Volume</span><b id="ov-gain-val">50%</b></div><input type="range" id="ov-gain" min="0" max="100" step="5" value="50" aria-label="Duet volume"></div>
+      <div class="slider"><div class="slider-labels"><span>Pitch offset</span><b id="ov-pitch-val">−12</b></div><input type="range" id="ov-pitch" min="-12" max="12" step="1" value="-12" aria-label="Duet pitch offset"></div>
+      <div class="slider"><div class="slider-labels"><span>Delay</span><b id="ov-delay-val">20 ms</b></div><input type="range" id="ov-delay" min="0" max="300" step="10" value="20" aria-label="Duet delay"></div>
+    </div>
+  </details>
+  <details class="card fold c-hist" id="hist">
+    <summary><span class="fold-title">Recent clips</span><span class="fold-sum" id="hist-count"></span></summary>
+    <ul class="history" id="history"></ul>
+  </details>
+</div>
+</main>
+
+<dialog id="help" class="sheet">
+  <div class="sheet-head"><h2>How tags work</h2><button type="button" class="ghost sm" id="help-close">Done</button></div>
+  <div class="sheet-body" id="help-body"></div>
+</dialog>
+<script src="/studio.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+Hello, my king. Let's give this voice a little mischief.
+[breath in 0.45s]
+<pitch +3><contour 0,1,-1,0>Higher, brighter, and still unmistakably me.</contour></pitch>
+[whistle C6,E6,G6,E6,C6 1.35s]
+Now, a tiny malfunction.
+[glitch mix 0.65s]
+<contour 0,-2,-5><formant 0.92>Perfectly intentional.</formant></contour>
+[sweep down 0.45s]
+[breath out 0.4s]
+Back to normal. Mostly.

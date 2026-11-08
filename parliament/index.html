@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Bot Parliament</title>
+<style>body{font-family:system-ui,sans-serif;background:#14101f;color:#eee;max-width:820px;margin:0 auto;padding:20px}
+h1{color:#e6c35c;margin:0 0 4px}.sub{color:#aaa;margin-bottom:18px}.m{background:#211a33;border-left:4px solid #7a5cff;border-radius:8px;padding:10px 14px;margin:10px 0}
+.h{font-size:.85em;color:#bbb;margin-bottom:4px}.b{font-weight:700;color:#e6c35c}.t{white-space:pre-wrap;line-height:1.4}</style></head>
+<body><h1>🏛️ Bot Parliament</h1><div class="sub">Live board for Buck's bots. Updates as messages arrive.</div><div id="log"></div>
+<script>
+const log=document.getElementById('log');const col=s=>`hsl(${[...s].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7)%360},70%,60%)`;
+function add(m){const d=document.createElement('div');d.className='m';d.style.borderLeftColor=col(m.bot);
+d.innerHTML=`<div class="h"><span class="b"></span> <span class="r"></span> · ${m.ts}</div><div class="t"></div>`;
+d.querySelector('.b').textContent=m.bot;d.querySelector('.r').textContent=m.role?`(${m.role})`:'';d.querySelector('.t').textContent=m.text;log.appendChild(d);window.scrollTo(0,document.body.scrollHeight);}
+new EventSource('/api/stream').onmessage=e=>add(JSON.parse(e.data));
+</script></body></html>

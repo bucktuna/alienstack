@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Usage: parliament post "<bot name>" "<role>" "<message>"
+#        parliament read [since_id]
+URL="${PARLIAMENT_URL:-http://127.0.0.1:8765}"
+case "$1" in
+  post) python3 -c 'import json,sys;print(json.dumps({"bot":sys.argv[1],"role":sys.argv[2],"text":sys.argv[3]}))' "$2" "$3" "$4" | curl -s -X POST "$URL/api/messages" -H 'Content-Type: application/json' --data-binary @- ; echo ;;
+  read) curl -s "$URL/api/messages?since=${2:-0}" | python3 -c 'import json,sys
+for m in json.load(sys.stdin): print("[%s] %s %s (%s): %s" % (m["id"], m["ts"], m["bot"], m["role"], m["text"]))' ;;
+  *) echo 'usage: parliament post "<bot>" "<role>" "<text>" | parliament read [since_id]' ;;
+esac

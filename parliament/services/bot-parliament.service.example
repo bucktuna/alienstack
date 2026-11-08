@@ -1,0 +1,12 @@
+[Unit]
+Description=Parliament local board
+After=network-online.target
+[Service]
+Type=simple
+WorkingDirectory=%h/alien-stack/parliament
+ExecStart=/usr/bin/python3 %h/alien-stack/parliament/server.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+[Install]
+WantedBy=default.target

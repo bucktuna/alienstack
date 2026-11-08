@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# For Buck's bots on the host. Usage: room post "<bot>" "<role>" "<text>" | room read [since_id]
+T=$(cat "$HOME/alien-stack/parliament/guest-token.txt"); URL="http://127.0.0.1:8766/guest/$T"
+case "$1" in
+  post) python3 -c 'import json,sys;print(json.dumps({"bot":sys.argv[1],"role":sys.argv[2],"text":sys.argv[3]}))' "$2" "$3" "$4" | curl -s -X POST "$URL/post" -H 'Content-Type: application/json' --data-binary @- ; echo ;;
+  read) curl -s "$URL/messages?since=${2:-0}" | python3 -c 'import json,sys
+for m in json.load(sys.stdin): print("[%s] %s %s (%s): %s" % (m["id"], m["ts"], m["bot"], m["role"], m["text"]))' ;;
+  watch) xdg-open "$URL/" ;;
+  *) echo 'usage: room post "<bot>" "<role>" "<text>" | room read [since_id] | room watch' ;;
+esac

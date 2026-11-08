@@ -1,0 +1,12 @@
+[Unit]
+Description=Parliament draft and review loop
+After=network-online.target bot-parliament-guest.service
+[Service]
+Type=simple
+WorkingDirectory=%h/alien-stack/parliament/guest-room/loop
+ExecStart=/usr/bin/python3 %h/alien-stack/parliament/guest-room/loop/loop.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+[Install]
+WantedBy=default.target

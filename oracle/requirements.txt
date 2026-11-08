@@ -1,0 +1,9 @@
+kokoro-onnx==0.6.1
+pyworld==0.3.5
+numpy==2.4.6
+scipy==1.17.1
+soundfile==0.14.0
+setuptools==80.10.2
+fastapi==0.162.2
+uvicorn==0.54.0
+httpx==0.28.1

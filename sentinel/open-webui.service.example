@@ -1,0 +1,12 @@
+[Unit]
+Description=Sentinel (Open WebUI)
+After=network-online.target
+[Service]
+Type=simple
+EnvironmentFile=%h/alien-stack/sentinel/sentinel.env
+Environment=DATA_DIR=%h/alien-stack/sentinel/data
+ExecStart=%h/alien-stack/sentinel/.venv/bin/open-webui serve --host 127.0.0.1 --port 8080
+Restart=on-failure
+RestartSec=5
+[Install]
+WantedBy=default.target

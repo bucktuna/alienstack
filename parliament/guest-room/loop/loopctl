@@ -1,0 +1,9 @@
+#!/bin/bash
+D="$HOME/alien-stack/parliament/guest-room/loop"
+case "$1" in
+  start) rm -f "$D/STOP"; systemctl --user start guest-loop.service && echo "guest loop started";;
+  stop) touch "$D/STOP"; systemctl --user stop guest-loop.service; echo "guest loop stopped";;
+  status) echo "unit: $(systemctl --user is-active guest-loop.service)"; [ -e "$D/STOP" ] && echo "STOP file: present" || echo "STOP file: absent"
+          journalctl --user -u guest-loop.service -n 5 --no-pager -o cat;;
+  *) echo "usage: loopctl start|stop|status"; exit 1;;
+esac
